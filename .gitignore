@@ -1,0 +1,6 @@
+*.dll
+*.pdb
+*.suo
+
+[Dd]ebug/
+[Oo]bj/
