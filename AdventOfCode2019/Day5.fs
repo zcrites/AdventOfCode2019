@@ -9,9 +9,9 @@ type Computer =
      Input : int list 
      Output : int list }
 
-let private input () =
+let private input args =
    { PC = 0
-     Input = [ 1 ]
+     Input = args
      Output = [] 
      Mem = 
       File.ReadLines "Input/day5.txt"
@@ -52,6 +52,30 @@ let exInstr m =
    | 4 -> 
       let v = getParam m1 m.Mem.[m.PC+1] m.Mem
       Some { m with PC = m.PC + 2; Output = v::m.Output }
+   | 5 -> 
+      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
+      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
+      if p1 <> 0
+      then Some { m with PC = p2 }
+      else Some { m with PC = m.PC + 3 }
+   | 6 -> 
+      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
+      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
+      if p1 = 0
+      then Some { m with PC = p2 }
+      else Some { m with PC = m.PC + 3 }
+   | 7 ->
+      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
+      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
+      let addr = m.Mem.[m.PC+3] 
+      m.Mem.[addr] <- if p1 < p2 then 1 else 0
+      Some { m with PC = m.PC + 4 }
+   | 8 ->
+      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
+      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
+      let addr = m.Mem.[m.PC+3] 
+      m.Mem.[addr] <- if p1 = p2 then 1 else 0
+      Some { m with PC = m.PC + 4 }
    | _ -> None
 
 let runProgram m =
@@ -64,5 +88,9 @@ let runProgram m =
    halted.Output |> List.head
 
 let part1 () =
-   input ()
+   input [ 1 ]
+   |> runProgram
+   
+let part2 () =
+   input [ 5 ]
    |> runProgram
