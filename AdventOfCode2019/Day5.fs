@@ -9,16 +9,19 @@ type Computer =
      Input : int list 
      Output : int list }
 
-let private input args =
+let loadProgram path args =
    { PC = 0
      Input = args
      Output = [] 
      Mem = 
-      File.ReadLines "Input/day5.txt"
+      File.ReadLines path
       |> Seq.map ( fun s -> s.Split ',' )
       |> Seq.concat
       |> Seq.map Int32.Parse
       |> Seq.toArray }
+
+let private input args =
+    loadProgram "Input/day5.txt" args
 
 let parseOp n =
    n % 100, (n/100) % 10 = 1, (n/1000) % 10 = 1, (n/10000) % 10 = 1
