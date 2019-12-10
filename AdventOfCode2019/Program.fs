@@ -16,7 +16,9 @@ let main argv =
      sprintf "Day 7 Part 1 = %d" <| Day7.part1 () 
      sprintf "Day 7 Part 2 = %d" <| Day7.part2 ()
      sprintf "Day 8 Part 1 = %d" <| Day8.part1 () 
-     sprintf "Day 8 Part 2 = %s" <| Day8.part2 () ]
+     sprintf "Day 8 Part 2 = %s" <| Day8.part2 ()
+     sprintf "Day 9 Part 1 = %d" <| Day9.part1 () 
+     sprintf "Day 9 Part 2 = %d" <| Day9.part2 () ]
    |> Seq.iter (printfn "%s")
 
    System.Console.ReadLine () |> ignore

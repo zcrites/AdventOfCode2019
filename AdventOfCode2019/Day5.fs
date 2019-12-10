@@ -5,80 +5,98 @@ open System.IO
 
 type Computer =
    { PC : int
-     Mem : int array 
-     Input : int list 
-     Output : int list }
+     RelOffset : int
+     Mem : int64 array 
+     Input : int64 list 
+     Output : int64 list }
 
 let loadProgram path args =
    { PC = 0
+     RelOffset = 0
      Input = args
      Output = [] 
      Mem = 
       File.ReadLines path
       |> Seq.map ( fun s -> s.Split ',' )
       |> Seq.concat
-      |> Seq.map Int32.Parse
+      |> Seq.map Int64.Parse
       |> Seq.toArray }
+   |> fun m -> { m with Mem = Array.append m.Mem (Array.create 1000000 (int64 0)) }
 
 let private input args =
     loadProgram "Input/day5.txt" args
 
 let parseOp n =
-   n % 100, (n/100) % 10 = 1, (n/1000) % 10 = 1, (n/10000) % 10 = 1
+   n % 100, (n/100) % 10, (n/1000) % 10, (n/10000) % 10
 
 let exInstr m =
-   let getParam immediate v (mem:int array) =
-      if immediate then v else mem.[v]
+   let getParam mode paramIdx (m:Computer) =
+      let v = m.Mem.[m.PC+paramIdx]
+      match mode with
+      | 0 -> m.Mem.[int v]
+      | 1 -> v
+      | _ -> m.Mem.[m.RelOffset + int32 v]
 
-   let op, m1, m2, m3 = parseOp m.Mem.[m.PC]
+   let getWriteParam mode paramIdx (m:Computer) =
+      let v = int32 m.Mem.[m.PC+paramIdx]
+      match mode with
+      | 0 | 1 -> v
+      | _ -> m.RelOffset + v
+
+   let tmp = m.Mem.[m.PC..m.PC+3]
+
+   let op, m1, m2, m3 = parseOp (int32 m.Mem.[m.PC])
    match op with
    | 99 -> None
    | 1 -> 
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      let addr = m.Mem.[m.PC+3] 
-      m.Mem.[addr] <- p1 + p2
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      let p3 = getWriteParam m3 3 m 
+      m.Mem.[p3] <- p1 + p2
       Some { m with PC = m.PC + 4 }
    | 2 -> 
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      let addr = m.Mem.[m.PC+3] 
-      m.Mem.[addr] <- p1 * p2
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      let p3 = getWriteParam m3 3 m 
+      m.Mem.[p3] <- p1 * p2
       Some { m with PC = m.PC + 4 }
    | 3 -> 
       match m.Input with
       | v::tail ->
-         let addr = m.Mem.[m.PC + 1]
-         m.Mem.[addr] <- v
+         let p1 = getWriteParam m1 1 m
+         m.Mem.[p1] <- v
          Some { m with PC = m.PC + 2; Input = tail }
       | _ -> failwith "ERR: NO INPUT"
    | 4 -> 
-      let v = getParam m1 m.Mem.[m.PC+1] m.Mem
+      let v = getParam m1 1 m
       Some { m with PC = m.PC + 2; Output = v::m.Output }
    | 5 -> 
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      if p1 <> 0
-      then Some { m with PC = p2 }
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      if int32 p1 <> 0
+      then Some { m with PC = int32 p2 }
       else Some { m with PC = m.PC + 3 }
    | 6 -> 
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      if p1 = 0
-      then Some { m with PC = p2 }
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      if int32 p1 = 0
+      then Some { m with PC = int32 p2 }
       else Some { m with PC = m.PC + 3 }
    | 7 ->
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      let addr = m.Mem.[m.PC+3] 
-      m.Mem.[addr] <- if p1 < p2 then 1 else 0
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      let p3 = getWriteParam m3 3 m
+      m.Mem.[p3] <- int64 <| if p1 < p2 then 1 else 0
       Some { m with PC = m.PC + 4 }
    | 8 ->
-      let p1 = getParam m1 m.Mem.[m.PC+1] m.Mem
-      let p2 = getParam m2 m.Mem.[m.PC+2] m.Mem
-      let addr = m.Mem.[m.PC+3] 
-      m.Mem.[addr] <- if p1 = p2 then 1 else 0
+      let p1 = getParam m1 1 m
+      let p2 = getParam m2 2 m
+      let p3 = getWriteParam m3 3 m
+      m.Mem.[p3] <- int64 <| if p1 = p2 then 1 else 0
       Some { m with PC = m.PC + 4 }
+   | 9 ->
+      let p1 = getParam m1 1 m
+      Some { m with PC = m.PC + 2; RelOffset = m.RelOffset + int32 p1 }
    | _ -> None
 
 let runProgram m =
@@ -91,9 +109,9 @@ let runProgram m =
    halted.Output |> List.head
 
 let part1 () =
-   input [ 1 ]
+   input [ 1L ]
    |> runProgram
    
 let part2 () =
-   input [ 5 ]
+   input [ 5L ]
    |> runProgram

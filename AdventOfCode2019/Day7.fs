@@ -9,7 +9,7 @@ let runAmp phase input =
 let rec check input (phases:int list) =
     match phases with
     | next::rest ->
-        let nextInput = runAmp next input
+        let nextInput = runAmp (int64 next) input
         check nextInput rest
     | _ -> input
 
@@ -26,7 +26,7 @@ let rec permutations = function
 
 let part1 () =
     permutations [0..4]
-    |> List.map ( fun phases -> check 0 phases )
+    |> List.map ( fun phases -> check 0L phases )
     |> List.max
 
 let runFeeback phases = 
@@ -42,12 +42,12 @@ let runFeeback phases =
                 | _ -> run (update::(next::rest))
             | None -> 
                 match current.Input with
-                | [ v ] -> v
+                | [ v ] -> int32 v
                 | _ -> 0
         | _ -> 0
         
     phases 
-    |> List.mapi ( fun i p -> loadProgram "Input/Day7.txt" [ yield p; if i = 0 then yield 0 ] )
+    |> List.mapi ( fun i p -> loadProgram "Input/Day7.txt" [ yield (int64 p);  if i = 0 then yield 0L ] )
     |> run
 
 let part2 () =
