@@ -21,6 +21,8 @@ let main argv =
    printfn "Day 9 Part 2 = %d" <| Day9.part2 ()
    printfn "Day 10 Part 1 = %d" <| Day10.part1 () 
    printfn "Day 10 Part 2 = %d" <| Day10.part2 ()
+   printfn "Day 11 Part 1 = %d" <| Day11.part1 ()
+   printfn "Day 11 Part 2 = %s" <| Day11.part2 ()
 
    System.Console.ReadLine () |> ignore
    
