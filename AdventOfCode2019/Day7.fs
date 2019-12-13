@@ -1,10 +1,13 @@
 ﻿module Day7
 
-open Day5
+open Computer
 
-let runAmp phase input =
-    loadProgram "Input/Day7.txt" [ phase; input ]
-    |> runProgram
+let runAmp phase arg =
+    loadProgram "Input/Day7.txt"
+    |> input phase
+    |> input arg
+    |> run
+    |> fun c -> c.Output.Head
 
 let rec check input (phases:int list) =
     match phases with
@@ -33,7 +36,7 @@ let runFeeback phases =
     let rec run (units:Computer list) =
         match units with
         | current::(next::rest) ->
-            match Day5.exInstr current with
+            match tick current with
             | Some update ->
                 match update.Output with
                 | [ v ] -> 
@@ -47,10 +50,13 @@ let runFeeback phases =
         | _ -> 0
         
     phases 
-    |> List.mapi ( fun i p -> loadProgram "Input/Day7.txt" [ yield (int64 p);  if i = 0 then yield 0L ] )
+    |> List.mapi ( fun i p -> 
+        loadProgram "Input/Day7.txt"
+        |> input p
+        |> fun p -> if i = 0 then p |> input 0L else p )
     |> run
 
 let part2 () =
-    permutations [5..9]
+    permutations [5L..9L]
     |> List.map ( fun phases -> runFeeback phases )
     |> List.max

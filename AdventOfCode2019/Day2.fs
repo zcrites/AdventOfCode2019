@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open Computer
 
 let private input () =
    File.ReadLines "Input/day2.txt"

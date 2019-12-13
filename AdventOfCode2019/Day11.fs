@@ -1,7 +1,7 @@
 ﻿module Day11
 
 open System
-open Day5
+open Computer
 
 type Point = 
    { X:int; Y:int }
@@ -10,7 +10,7 @@ type Robot =
    { Position:Point; Direction:Point; Paint:Map<Point,int>; CPU:Computer option }
     
 let rec nextOutput cpu =
-   match exInstr cpu with
+   match tick cpu with
    | Some next when next.Output.Length = 1 -> Some (next.Output.Head, { next with Output = [] })
    | Some next -> nextOutput next
    | None -> None
@@ -59,7 +59,7 @@ let robot () =
    { Position = { X = 0; Y = 0 }
      Direction = { X = 0; Y = 1 }
      Paint = Map.empty
-     CPU = Some <| loadProgram "Input/Day11.txt" [] }
+     CPU = Some <| loadProgram "Input/Day11.txt" }
 
 let part1 () =
    let halted = robot () |> run
