@@ -96,6 +96,19 @@ let rec nextOutput cpu =
    | Some next -> nextOutput next
    | None -> None
 
+let rec outputSeq cpu = seq {
+    match nextOutput cpu with
+    | Some (v,next) -> 
+        yield (v,next)
+        yield! outputSeq next
+    | None -> () }
+
+let tryTakeOutput n cpu =
+    outputSeq cpu 
+    |> Seq.truncate n
+    |> Seq.fold ( fun (result,_) (v,cpu) ->  (v::result,cpu) ) ([],cpu)
+    |> fun (vs,cpu) -> (vs |> List.rev,cpu) 
+
 let loadProgram path = 
     { PC = 0
       RelOffset = 0

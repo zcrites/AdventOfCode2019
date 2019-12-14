@@ -27,26 +27,19 @@ let updateInput g =
     | Some bx, Some px -> g |> setInput (Math.Clamp( px - bx, -1, 1 ))
     | _,_ ->  g |> setInput 0
 
-let rec getNextOutput n cpu =
-    if n > 0 then
-        match cpu |> Option.map nextOutput |> Option.flatten with
-        | Some (next,nextCpu) ->
-            let rest,restCpu = getNextOutput (n-1) (Some nextCpu)
-            (int next)::rest, restCpu
-        | None -> [], None
-    else [],cpu 
-
 let procOutput draw g =
-    match g.CPU |> getNextOutput 3 with 
-    | [-1; 0; score ], cpu -> 
-        draw 1 0 score
-        { g with Score = score; CPU = cpu }
-    | [ x; y; t ], cpu -> 
-        draw x y t
-        { g with CPU = cpu }
-        |> setValue x y t
-    | _, cpu -> { g with CPU = cpu }
-    
+    g.CPU |> Option.map ( fun cpu -> 
+        match cpu |> tryTakeOutput 3 with 
+        | [-1L; 0L; score ], cpu -> 
+            draw 1 0 score
+            { g with Score = int score; CPU = Some cpu }
+        | [ x; y; t ], cpu -> 
+            draw (int x) (int y) t
+            { g with CPU = Some cpu }
+            |> setValue (int x) (int y) (int t)
+        | _ -> { g with CPU = None } )
+    |> Option.defaultValue g
+
 let rec run draw g =
     if g.CPU.IsSome then 
         procOutput draw g 
@@ -60,7 +53,7 @@ let noRender x y t = ()
 let drawConsole xOffset yOffset x y t =
     let origX,origY = Console.CursorLeft, Console.CursorTop
     Console.SetCursorPosition( min (Console.BufferWidth - 1) (xOffset + x), yOffset + y )
-    Console.Write( tiles |> List.tryItem t |> Option.defaultValue (t.ToString()) )
+    Console.Write( tiles |> List.tryItem (int t) |> Option.defaultValue (t.ToString()) )
     Console.SetCursorPosition( origX, origY )
 
 let part1 () =
