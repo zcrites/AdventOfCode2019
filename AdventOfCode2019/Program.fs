@@ -10,7 +10,7 @@ let run day part (runProblem:unit->'T) =
     
     let time = float timer.ElapsedMilliseconds / 1000.0
     let total = float programTimer.ElapsedMilliseconds / 1000.0
-    printfn "(%.3f) %.3f   Day %d Part %d = %O" total time day part result
+    printfn "(%.3fs) %.3fs   Day %d Part %d = %O" total time day part result
 
 [<EntryPoint>]
 let main argv =
@@ -43,6 +43,8 @@ let main argv =
    run 12 2 Day12.part2
    run 13 1 Day13.part1
    run 13 2 Day13.part2
+   run 14 1 Day14.part1
+   run 14 2 Day14.part2
 
    System.Console.ReadLine () |> ignore
    
