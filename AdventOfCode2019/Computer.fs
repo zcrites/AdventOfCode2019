@@ -10,10 +10,10 @@ type Computer =
      Input : int64 list 
      Output : int64 list }
 
-let private read addr m =
+let read addr m =
     m.Mem |> Map.tryFind addr |> Option.defaultValue 0L
     
-let private write addr v m =
+let write addr v m =
     { m with Mem = m.Mem |> Map.add addr v }
 
 let private jumpTo addr m = 
@@ -95,6 +95,12 @@ let rec run m =
 
 let input v m =
     { m with Input = List.append m.Input [v] }
+
+let rec nextOutput cpu =
+   match tick cpu with
+   | Some next when next.Output.Length = 1 -> Some (next.Output.Head, { next with Output = [] })
+   | Some next -> nextOutput next
+   | None -> None
 
 let loadProgram path = 
     { PC = 0
