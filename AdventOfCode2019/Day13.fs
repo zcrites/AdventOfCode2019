@@ -36,7 +36,9 @@ let rec getNextOutput n cpu =
 
 let procOutput draw g =
     match g.CPU |> getNextOutput 3 with 
-    | [-1; 0; score ], cpu -> { g with Score = score; CPU = cpu }
+    | [-1; 0; score ], cpu -> 
+        draw 1 1 score
+        { g with Score = score; CPU = cpu }
     | [ x; y; t ], cpu -> 
         draw x y t
         { g with Screen = g.Screen |> Map.add (x,y) t; CPU = cpu }
@@ -49,13 +51,13 @@ let rec run draw g =
         |> run draw
     else g
 
-let tiles = [ ' '; '█'; '░'; '╤'; '○' ]
+let tiles = [ ' '; '█'; '░'; '╤'; '○' ] |> List.map (fun c -> String [| c |])
 
 let noRender x y t = ()
 let drawConsole xOffset yOffset x y t =
     let origX,origY = Console.CursorLeft, Console.CursorTop
     Console.SetCursorPosition( min (Console.BufferWidth - 1) (xOffset + x), yOffset + y )
-    Console.Write( tiles |> List.item t )
+    Console.Write( tiles |> List.tryItem t |> Option.defaultValue (t.ToString()) )
     Console.SetCursorPosition( origX, origY )
 
 let part1 () =
