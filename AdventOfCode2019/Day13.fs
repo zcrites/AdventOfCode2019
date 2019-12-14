@@ -4,24 +4,26 @@ open System
 open Computer
 
 type Point = { X:int; Y:int }
-type Game = { CPU : Computer option; Score : int; Screen : Map<(int*int),int> }
+type Game = { CPU : Computer option; Score : int; Screen : Map<(int*int),int>; BallX : int option; PaddleX : int option }
 
 let newGame = 
     { CPU = Some <| loadProgram "Input/day13.txt"
       Score = 0
-      Screen = Map.empty }
-
-let findTileX n g =
-    g.Screen
-    |> Map.toSeq
-    |> Seq.tryFind ( fun (_,v) -> v = n )
-    |> Option.map ( fun ((x,_),_) -> x )
+      Screen = Map.empty 
+      BallX = None
+      PaddleX = None }
 
 let setInput v g =
     { g with CPU = g.CPU |> Option.map( fun cpu -> { cpu with Input = [ int64 v ] } ) }
 
+let setValue x y v g =
+    { g with
+        Screen = g.Screen |> Map.add (x,y) v
+        BallX = if v = 3 then Some x else g.BallX
+        PaddleX = if v = 4 then Some x else g.PaddleX }
+
 let updateInput g = 
-    match findTileX 3 g, findTileX 4 g with
+    match g.BallX, g.PaddleX with
     | Some bx, Some px -> g |> setInput (Math.Clamp( px - bx, -1, 1 ))
     | _,_ ->  g |> setInput 0
 
@@ -37,11 +39,12 @@ let rec getNextOutput n cpu =
 let procOutput draw g =
     match g.CPU |> getNextOutput 3 with 
     | [-1; 0; score ], cpu -> 
-        draw 1 1 score
+        draw 1 0 score
         { g with Score = score; CPU = cpu }
     | [ x; y; t ], cpu -> 
         draw x y t
-        { g with Screen = g.Screen |> Map.add (x,y) t; CPU = cpu }
+        { g with CPU = cpu }
+        |> setValue x y t
     | _, cpu -> { g with CPU = cpu }
     
 let rec run draw g =
@@ -51,7 +54,7 @@ let rec run draw g =
         |> run draw
     else g
 
-let tiles = [ ' '; '█'; '░'; '╤'; '○' ] |> List.map (fun c -> String [| c |])
+let tiles = [ " "; "█"; "░"; "╤"; "○" ]
 
 let noRender x y t = ()
 let drawConsole xOffset yOffset x y t =
@@ -73,5 +76,6 @@ let freeplay g = { g with CPU = g.CPU |> Option.map( write 0 2L ) }
 let part2 () =
     newGame 
     |> freeplay 
-    |> run (drawConsole 50 (Console.WindowTop+1))
+    |> run noRender
+//    |> run (drawConsole 50 (Console.WindowTop+1))
     |> fun g -> g.Score
