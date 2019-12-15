@@ -3,7 +3,6 @@
 open System
 open Computer
 
-type Point = { X:int; Y:int }
 type Game = { CPU : Computer option; Score : int; Screen : Map<(int*int),int>; BallX : int option; PaddleX : int option }
 
 let newGame = 
