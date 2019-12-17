@@ -21,10 +21,10 @@ let private incrementPC v m = { m with PC = m.PC + v }
 let private setInput v m = { m with Input = v }
 let private setOutput v m = { m with Output = v }
 
-let private opcode m = 
+let opcode m = 
     read m.PC m % 100L |> int
 
-let private getParamAddr i m =
+let getParamAddr i m =
     let paramMode = ( read m.PC m / ( pown 10L i  * 10L ) ) % 10L |> int
     match paramMode with
     | 0 -> read (m.PC+i) m |> int
@@ -90,6 +90,9 @@ let rec run m =
 let input v m =
     { m with Input = List.append m.Input [v] }
 
+let inputList v m =
+    { m with Input = List.append m.Input v }
+
 let rec nextOutput cpu =
    match tick cpu with
    | Some next when next.Output.Length = 1 -> Some (next.Output.Head, { next with Output = [] })
@@ -120,3 +123,14 @@ let loadProgram path =
         |> Seq.map Int64.Parse
         |> Seq.indexed
         |> Seq.fold ( fun mem (i,v) -> mem |> Map.add i v ) Map.empty }
+
+let largestAddr cpu =
+    cpu.Mem |> Map.toSeq |> Seq.maxBy ( fun (a,_) -> a ) |> fst
+
+let memDiff a b =
+    let maxAddr = max (largestAddr a) (largestAddr b)  
+
+    [0..maxAddr]
+    |> Seq.filter ( fun addr -> (read addr a) <> (read addr b) )
+    |> Seq.map( fun addr -> (addr,read addr a, read addr b))
+    |> Seq.toList
