@@ -1,6 +1,5 @@
 ﻿module Day16
 
-open System
 open System.IO
 
 let input =
@@ -14,17 +13,17 @@ let input100 =
    |> Seq.concat
    |> Seq.toArray
 
-let fft (signal:int array) =
+let fft signal =
    let sums =
-      (Array.scan (+) 0 signal) 
+      signal |> Array.scan (+) 0
 
    [1..signal.Length]
    |> Seq.map( fun phase ->
       [(phase-1)..(phase*4)..(signal.Length-1)]
       |> Seq.map ( fun s1 ->
-         let s2 = (s1 + phase) |> min (signal.Length)
-         let s3 = (s1 + (2 * phase)) |> min (signal.Length)
-         let s4 = (s1 + (3 * phase)) |> min (signal.Length)
+         let s2 = s1 + phase |> min signal.Length
+         let s3 = s1 + 2 * phase |> min signal.Length
+         let s4 = s1 + 3 * phase |> min signal.Length
       
          let positiveSum = sums.[s2] - sums.[s1] 
          let negativeSum = sums.[s4] - sums.[s3] 
@@ -33,23 +32,31 @@ let fft (signal:int array) =
    |> Seq.map ( fun v -> abs v % 10 )
    |> Seq.toArray
 
+let printSignal signal =
+    signal
+    |> Seq.fold ( fun r v -> r * 10 + v ) 0
+    |> sprintf "%d"
+
 let part1 () =
    [1..100]
-   |> Seq.fold (fun s _ -> fft s ) input
+   |> Seq.fold ( fun signal _ -> fft signal ) input
    |> Seq.take 8
-   |> Seq.map (sprintf "%d")
-   |> fun digits -> String.Join( "", Array.ofSeq digits )
+   |> printSignal
+   
+let fftBackside reversedSignal =
+   reversedSignal
+   |> Seq.scan (+) 0
+   |> Seq.skip 1
+   |> Seq.map ( fun v -> v % 10 )
 
 let part2 () =
-    let offset = 
-        input
-        |> Seq.take 7
-        |> Seq.fold (fun r v -> r * 10 + v ) 0
+   let offset = 
+      input
+      |> Seq.take 7
+      |> Seq.fold ( fun r v -> r * 10 + v ) 0
 
-    [1..100]
-    |> Seq.fold ( fun s i -> fft s ) input100
-    |> Seq.skip (int offset)
-    |> Seq.take 8
-    |> Seq.map (sprintf "%d")
-    |> fun digits -> String.Join( "", Array.ofSeq digits )
-   
+   [1..100]
+   |> Seq.fold ( fun signal _ -> fftBackside signal ) (Seq.rev input100.[offset..])
+   |> Seq.rev
+   |> Seq.take 8
+   |> printSignal

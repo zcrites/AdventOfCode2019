@@ -48,6 +48,8 @@ let main _ =
        Day14.part2 >> sprintf "%d" 
        Day15.part1 >> sprintf "%d"
        Day15.part2 >> sprintf "%d" 
+       Day16.part1
+       Day16.part2
    ]
    |> List.indexed 
    |> List.iter (fun (i, part) -> run (1 + i / 2) (1 + i % 2) part)
